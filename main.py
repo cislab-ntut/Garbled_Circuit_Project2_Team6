@@ -61,14 +61,14 @@ def main():
         check = True
     x = [enc(x[:2], '10'), enc(x[:2], '01')]
     
-    p = input('請輸入 2-bit 的 p：')
-    if check and p[:2] == '00':
+    g = input('請輸入 2-bit 的 g：')
+    if check and g[:2] == '00':
         print('無意義')
         return
-    p = [enc(p[:2], '10'), enc(p[:2], '01')]
+    g = [enc(g[:2], '10'), enc(g[:2], '01')]
 
     # 輸入的值
-    values = x + p
+    values = x + g
     answer = calculate(values)
     print('Output： ' + answer)
 
