@@ -12,8 +12,10 @@
 * 最終方法:
 不能用number level找規律(原本方法都始於number level)，因number level沒辦法看出每個職之間bit的變化，所以我們必須用bit level，直接畫出2bits的truth table並進行電路的化簡。
 
-g^x mod 2:
+g^x mod 2(過於簡單所以採用g^x mod 3):
 ![image](https://github.com/cislab-yzu/Project6-2_Garbled_circuit/blob/master/mod2.jpg)
+
+g^x mod 3:
 
 ## 10/22討論
 工作分配(先做2bit):
