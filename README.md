@@ -7,10 +7,10 @@
 
 討論模運算:
 * 原本方法:
-1.利用二進位的表示法進行運算，將次方後的結果與mod p做一個XOR運算，二     進位的結果會與直接計算的答案相同。
+1.利用二進位的表示法進行運算，將次方後的結果與mod p做一個XOR運算，二進位的結果會與直接計算的答案相同。
 2.利用暴力破解的表格法，從其找出規律，但在p為非質數時會錯。
 * 最終方法:
-不能用number level找規律(原本方法都始於number level)，因number level沒辦法看出每個職之間bit的變化，所以我們必須用bit level，直接畫出2bits的truth table並進行電路的化簡。
+不能用number level找規律(原本方法都始於number level)，因number level沒辦法看出每個值之間bit的變化，所以我們必須用bit level，直接畫出2bits的truth table並進行電路的化簡。
 
 g^x mod 2(過於簡單所以採用g^x mod 3):
 ![image](https://github.com/cislab-yzu/Project6-2_Garbled_circuit/blob/master/mod2.jpg)
