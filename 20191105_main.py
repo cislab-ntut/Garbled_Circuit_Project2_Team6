@@ -134,3 +134,69 @@ def calculate(values, C_in, C_mid, C_out, table, lable):
         
         # 放回去values
         values[size + c[0]] = decide(a, b, t)
+
+        # 完成 MID
+    for c in C_mid:
+        print('GateID：' + str(c[0]) + ' --->', end=' ')
+        # 找出上面的值
+        a = values[c[1][0]]
+            
+        # 找出下面的值
+        b = values[c[1][1]]
+
+        # 算出輸出值
+        t = table[c[0]]
+        
+        # 放回去values
+        values[size + c[0]] = decide(a, b, t)
+
+    # 完成 OUT
+    answer = ''
+    for c in C_out:
+        print('GateID：' + str(c[0]) + ' --->', end=' ')
+        # 找出上面的值
+        a = values[c[1][0]]
+            
+        # 找出下面的值
+        b = values[c[1][1]]
+
+        # 算出輸出值
+        t = table[c[0]]
+
+        # 放回去values
+        tempAns = decide(a, b, t)
+        if tempAns == lable[size + c[0]][0]:
+            answer += '0'
+        else:
+            answer += '1'
+
+    return answer
+
+def main():
+    C_in, C_mid, C_out = circuit()
+    input_lable = create_input_lable()
+    gate_lable = create_gate_lable(C_in, C_mid, C_out)
+    lable = input_lable + gate_lable
+    table = create_table(lable, C_in, C_mid, C_out)
+    print(lable)
+
+    print('\n' + str(_BITSIZE) + '-bit g^x mod 3')
+    
+    # 輸入g和x，並加密
+    values = []
+    count = 0    
+    g = input('請輸入 ' + str(_BITSIZE) + '-bit 的 g：')
+    for w in g:
+        values.append(lable[count][int(w)])
+        count += 1
+    x = input('請輸入 ' + str(_BITSIZE) + '-bit 的 x：')
+    for w in x:
+        values.append(lable[count][int(w)])
+        count += 1
+        
+    # 計算結果
+    answer = calculate(values, C_in, C_mid, C_out, table, lable)
+    print('Output： ' + answer)
+
+while(True):
+    main()
