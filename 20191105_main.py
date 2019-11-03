@@ -65,7 +65,7 @@ def create_table(lable, C_in, C_mid, C_out):
 
     for c in C_out:
         result[c[0]] = find_truthtable(lable, c)
-       result[c[0]] = find_truthtable(lable, c)
+        result[c[0]] = find_truthtable(lable, c)
         
     return result
 
