@@ -5,7 +5,8 @@
 (邏輯閘上方的編號是依據程式設計之結構，可參考circuit.json)
 ![image](https://github.com/cislab-yzu/Project6-2_Garbled_circuit/blob/master/circuit.jpg)
 
-加密方式
+加密方式:
+
 
 討論模運算:
 * 原本方法:
