@@ -178,7 +178,7 @@ def main():
     gate_lable = create_gate_lable(C_in, C_mid, C_out)
     lable = input_lable + gate_lable
     table = create_table(lable, C_in, C_mid, C_out)
-    
+    print()
     print(lable)
 
     print('\n' + str(_BITSIZE) + '-bit g^x mod 3')
