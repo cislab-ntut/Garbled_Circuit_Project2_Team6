@@ -19,7 +19,8 @@ g^x mod 2(過於簡單所以採用g^x mod 3):
 ![image](https://github.com/cislab-yzu/Project6-2_Garbled_circuit/blob/master/mod2.jpg)
 
 g^x mod 3:
-
+![image](https://github.com/cislab-yzu/Project6-2_Garbled_circuit/blob/master/mod3-1.jpg)
+![image](https://github.com/cislab-yzu/Project6-2_Garbled_circuit/blob/master/mod3-2.jpg)
 ## 10/22討論
 工作分配(先做2bit):
 黃子庭:撰寫加密程式
