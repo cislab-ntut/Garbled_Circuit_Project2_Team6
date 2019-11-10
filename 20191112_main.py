@@ -288,5 +288,5 @@ def main():
     operation(C_Con, C_Maj, C_LS0, C_LS1, C_Add)
     H = ['{0:08x}'.format(int(h, 2)) for h in H]
 
-while(True):
-    main()
+
+main()
