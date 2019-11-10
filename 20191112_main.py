@@ -144,3 +144,149 @@ def decide(a, b, t):
 
 # 計算結果  
 def calculate(values, CC):
+    # 輸入的值加上gate輸出的值
+    values = values + ([0] * (len(CC.C_in) + len(CC.C_out)))
+
+    # 完成 IN
+    for c in CC.C_in:
+        print('GateID：' + str(c[0]) + ' --->', end=' ')
+        # 找出上面的值
+        a = values[c[1][0]]
+            
+        # 找出下面的值
+        b = values[c[1][1]]
+
+        # 算出輸出值
+        t = CC.Table[c[0]]
+        
+        # 放回去values
+        values[CC.InputSize + c[0]] = decide(a, b, t)
+
+    # 完成 OUT
+    answer = ''
+    for c in CC.C_out:
+        print('GateID：' + str(c[0]) + ' --->', end=' ')
+        # 找出上面的值
+        a = values[c[1][0]]
+            
+        # 找出下面的值
+        b = values[c[1][1]]
+
+        # 算出輸出值
+        t = CC.Table[c[0]]
+
+        # 放回去values
+        tempAns = decide(a, b, t)
+        values[CC.InputSize + c[0]] = tempAns
+        if tempAns == CC.Lable[(CC.InputSize * 32) + c[0]][0]:
+            answer += '0'
+        else:
+            answer += '1'
+
+    return answer
+
+def operation(C_Con, C_Maj, C_LS0, C_LS1, C_Add):
+
+    ## T1 0-31
+    values = [C_LS1.Lable[t][int(H[4][t])] for t in range(len(H[4]))]
+    T1_LS1 = calculate(values, C_LS1)
+    
+    tempV1 = [C_Add.Lable[t][int(H[7][t])] for t in range(len(H[7]))]
+    tempV2 = [C_Add.Lable[t][int(T1_LS1[t])] for t in range(len(T1_LS1))]
+    values = tempV1 + tempV2
+    T1_ADD1 = calculate(values, C_Add)
+
+    tempV1 = [C_Con.Lable[t][int(H[4][t])] for t in range(len(H[4]))]
+    tempV2 = [C_Con.Lable[t][int(H[5][t])] for t in range(len(H[5]))]
+    tempV3 = [C_Con.Lable[t][int(H[6][t])] for t in range(len(H[6]))]
+    values = tempV1 + tempV2 + tempV3
+    T1_Con = calculate(values, C_Con)
+
+    tempV1 = [C_Add.Lable[t][int(T1_ADD1[t])] for t in range(len(T1_ADD1))]
+    tempV2 = [C_Add.Lable[t][int(T1_Con[t])] for t in range(len(T1_Con))]
+    values = tempV1 + tempV2
+    T1_ADD2 = calculate(values, C_Add)
+
+    tempV1 = [C_Add.Lable[t][int(T1_ADD2[t])] for t in range(len(T1_ADD2))]
+    tempV2 = [C_Add.Lable[t][int(K[It][t])] for t in range(len(K[It]))]
+    values = tempV1 + tempV2
+    T1_ADD3 = calculate(values, C_Add)
+
+    tempV1 = [C_Add.Lable[t][int(T1_ADD3[t])] for t in range(len(T1_ADD3))]
+    tempV2 = [C_Add.Lable[t][int(W[It][t])] for t in range(len(W[It]))]
+    values = tempV1 + tempV2
+    T1 = calculate(values, C_Add)
+
+    ## T2 0-31
+    values = [C_LS0.Lable[t][int(H[0][t])] for t in range(len(H[0]))]
+    T2_LS0 = calculate(values, C_LS0)
+
+    tempV1 = [C_Maj.Lable[t][int(H[0][t])] for t in range(len(H[0]))]
+    tempV2 = [C_Maj.Lable[t][int(H[1][t])] for t in range(len(H[1]))]
+    tempV3 = [C_Maj.Lable[t][int(H[2][t])] for t in range(len(H[2]))]
+    values = tempV1 + tempV2 + tempV3
+    T2_Maj = calculate(values, C_Maj)
+
+    tempV1 = [C_Add.Lable[t][int(T2_LS0[t])] for t in range(len(T2_LS0))]
+    tempV2 = [C_Add.Lable[t][int(T2_Maj[t])] for t in range(len(T2_Maj))]
+    values = tempV1 + tempV2
+    T2 = calculate(values, C_Add)
+
+    ## D + T1 0-31
+    tempV1 = [C_Add.Lable[t][int(H[3][t])] for t in range(len(H[3]))]
+    tempV2 = [C_Add.Lable[t][int(T1[t])] for t in range(len(T1))]
+    values = tempV1 + tempV2
+    D_T1 = calculate(values, C_Add)
+
+    ## T1 + T2 0-31
+    tempV1 = [C_Add.Lable[t][int(T1[t])] for t in range(len(T1))]
+    tempV2 = [C_Add.Lable[t][int(T2[t])] for t in range(len(T2))]
+    values = tempV1 + tempV2
+    T1_T2 = calculate(values, C_Add)
+
+    H[7] = H[6]
+    H[6] = H[5]
+    H[5] = H[4]
+    H[4] = T1_LS1#D_T1
+    H[3] = H[2]
+    H[2] = H[1]
+    H[1] = H[0]
+    H[0] = T1_LS1#T1_T2
+
+def main():
+    
+    C_Con = circuit('conditional.json', 3)
+    C_Maj = circuit('Majority.json', 3)
+    C_LS0 = circuit('LSigma_0.json', 1)
+    C_LS1 = circuit('LSigma_1.json', 1)
+    C_Add = circuit('adder.json', 2)
+    
+    # 讀入 H.txt 和 W.txt 和 I.txt
+    global H
+    infileH = open('H.txt')
+    tempH = infileH.readline()
+    H = tempH.split()
+    H = ['{0:032b}'.format(int(h, 16)) for h in H]
+    infileH.close()
+    
+    global W
+    infileW = open('W.txt')
+    tempW = infileW.readline()
+    W = tempW.split()
+    W = ['{0:032b}'.format(int(w, 16)) for w in W]
+    infileW.close()
+    
+    global It
+    infileI = open('I.txt')
+    It = int(infileI.read())
+    infileI.close()
+    
+    global K
+    K = ['{0:032b}'.format(int(k, 16))for k in K]
+        
+    # 計算結果
+    operation(C_Con, C_Maj, C_LS0, C_LS1, C_Add)
+    H = ['{0:08x}'.format(int(h, 2)) for h in H]
+
+while(True):
+    main()
