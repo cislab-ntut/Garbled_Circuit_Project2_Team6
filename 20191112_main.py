@@ -24,14 +24,15 @@ W = []
 It = 0
 
 class Circuit():
-    def __init__(self, c_in, c_out, lable, table, inputSize):
+    def __init__(self, c_in, c_out, lable, table, inputSize, ifAdd):
         self.C_in = c_in
         self.C_out = c_out
         self.Lable = lable
         self.Table = table
         self.InputSize = inputSize
+        self.IfAdd = ifAdd
 
-def circuit(fileName, inputSize):
+def circuit(fileName, inputSize, ifAdd):
     # 讀電路檔案
     infile = open(fileName, 'r')
     r = infile.readline()
@@ -41,15 +42,15 @@ def circuit(fileName, inputSize):
     C_out = dic['output']
 
     # 建立label
-    input_lable = create_input_lable(inputSize)
+    input_lable = create_input_lable(inputSize, ifAdd)
     gate_lable = create_gate_lable(C_in, C_out)
     lable = input_lable + gate_lable
     
     # 建立table
-    table = create_table(lable, C_in, C_out, inputSize) 
+    table = create_table(lable, C_in, C_out, inputSize, ifAdd) 
     
     # 建立結構
-    resultC = Circuit(C_in, C_out, lable, table, inputSize)
+    resultC = Circuit(C_in, C_out, lable, table, inputSize, ifAdd)
     
     return resultC
 
@@ -71,11 +72,11 @@ def create_gate_lable(C_in, C_out):
     
     return result
 
-def create_input_lable(inputSize):
+def create_input_lable(inputSize, ifAdd):
     result = []
 
     # 產生所有input的0,1標籤
-    for i in range(inputSize * 32):
+    for i in range((inputSize * 32) + ifAdd):
         one = ''
         zero = ''
         while(len(one) < _LABELSIZE):
@@ -86,18 +87,18 @@ def create_input_lable(inputSize):
         
     return result
 
-def create_table(lable, C_in, C_out, inputSize):
+def create_table(lable, C_in, C_out, inputSize, ifAdd):
     result = {}
 
     for c in C_in:
-        result[c[0]] = find_truthtable(lable, c, inputSize)
+        result[c[0]] = find_truthtable(lable, c, inputSize, ifAdd)
 
     for c in C_out:
-        result[c[0]] = find_truthtable(lable, c, inputSize)
+        result[c[0]] = find_truthtable(lable, c, inputSize, ifAdd)
         
     return result
 
-def find_truthtable(lable, c, inputSize):
+def find_truthtable(lable, c, inputSize, ifAdd):
     temp = []
     
     # 建立gate的input
@@ -107,7 +108,7 @@ def find_truthtable(lable, c, inputSize):
     temp.append([lable[c[1][0]][1], lable[c[1][1]][1]])
 
     # 建立gate的table
-    lableID = c[0] + (inputSize * 32)
+    lableID = c[0] + (inputSize * 32) + ifAdd
     for i in range(4):
         if i in c[2]:
             temp[i] = [hash(str([encrypt(temp[i][0]), encrypt(temp[i][1]),\
@@ -136,20 +137,21 @@ def decide(a, b, t):
     for i in range(4):
         temp = get_hash(a, b, t[i][1])
         if temp == t[i][0]:
-            print(t[i][1])
+            #print(t[i][1])
             return t[i][1]
     result = t[random.randint(0, 3)][1]
-    print(result)
+    #print(result)
     return result
 
 # 計算結果  
 def calculate(values, CC):
+
     # 輸入的值加上gate輸出的值
     values = values + ([0] * (len(CC.C_in) + len(CC.C_out)))
 
     # 完成 IN
     for c in CC.C_in:
-        print('GateID：' + str(c[0]) + ' --->', end=' ')
+        #print('GateID：' + str(c[0]) + ' --->', end=' ')
         # 找出上面的值
         a = values[c[1][0]]
             
@@ -159,13 +161,15 @@ def calculate(values, CC):
         # 算出輸出值
         t = CC.Table[c[0]]
         
+        #print(a,b,t)
+        
         # 放回去values
-        values[CC.InputSize + c[0]] = decide(a, b, t)
+        values[(CC.InputSize * 32) + CC.IfAdd + c[0]] = decide(a, b, t)
 
     # 完成 OUT
     answer = ''
     for c in CC.C_out:
-        print('GateID：' + str(c[0]) + ' --->', end=' ')
+        #print('GateID：' + str(c[0]) + ' --->', end=' ')
         # 找出上面的值
         a = values[c[1][0]]
             
@@ -174,11 +178,13 @@ def calculate(values, CC):
 
         # 算出輸出值
         t = CC.Table[c[0]]
-
+        
+        #print(a,b,t)
+        
         # 放回去values
         tempAns = decide(a, b, t)
-        values[CC.InputSize + c[0]] = tempAns
-        if tempAns == CC.Lable[(CC.InputSize * 32) + c[0]][0]:
+        values[(CC.InputSize * 32) + CC.IfAdd + c[0]] = tempAns
+        if tempAns == CC.Lable[(CC.InputSize * 32) + CC.IfAdd + c[0]][0]:
             answer += '0'
         else:
             answer += '1'
@@ -186,16 +192,19 @@ def calculate(values, CC):
     return answer
 
 def operation(C_Con, C_Maj, C_LS0, C_LS1, C_Add):
-
+    
     ## T1 0-31
     values = [C_LS1.Lable[t][int(H[4][t])] for t in range(len(H[4]))]
     T1_LS1 = calculate(values, C_LS1)
     
     tempV1 = [C_Add.Lable[t][int(H[7][t])] for t in range(len(H[7]))]
+    tempV1.reverse()
     tempV2 = [C_Add.Lable[t][int(T1_LS1[t])] for t in range(len(T1_LS1))]
-    values = tempV1 + tempV2
+    tempV2.reverse()
+    values = tempV1 + tempV2 + [C_Add.Lable[64][0]]
     T1_ADD1 = calculate(values, C_Add)
-
+    T1_ADD1 = T1_ADD1[::-1]
+    
     tempV1 = [C_Con.Lable[t][int(H[4][t])] for t in range(len(H[4]))]
     tempV2 = [C_Con.Lable[t][int(H[5][t])] for t in range(len(H[5]))]
     tempV3 = [C_Con.Lable[t][int(H[6][t])] for t in range(len(H[6]))]
@@ -203,20 +212,29 @@ def operation(C_Con, C_Maj, C_LS0, C_LS1, C_Add):
     T1_Con = calculate(values, C_Con)
 
     tempV1 = [C_Add.Lable[t][int(T1_ADD1[t])] for t in range(len(T1_ADD1))]
+    tempV1.reverse()
     tempV2 = [C_Add.Lable[t][int(T1_Con[t])] for t in range(len(T1_Con))]
-    values = tempV1 + tempV2
+    tempV2.reverse()
+    values = tempV1 + tempV2 + [C_Add.Lable[64][0]]
     T1_ADD2 = calculate(values, C_Add)
+    T1_ADD2 = T1_ADD2[::-1]
 
     tempV1 = [C_Add.Lable[t][int(T1_ADD2[t])] for t in range(len(T1_ADD2))]
+    tempV1.reverse()
     tempV2 = [C_Add.Lable[t][int(K[It][t])] for t in range(len(K[It]))]
-    values = tempV1 + tempV2
+    tempV2.reverse()
+    values = tempV1 + tempV2 + [C_Add.Lable[64][0]]
     T1_ADD3 = calculate(values, C_Add)
+    T1_ADD3 = T1_ADD3[::-1]
 
     tempV1 = [C_Add.Lable[t][int(T1_ADD3[t])] for t in range(len(T1_ADD3))]
+    tempV1.reverse()
     tempV2 = [C_Add.Lable[t][int(W[It][t])] for t in range(len(W[It]))]
-    values = tempV1 + tempV2
+    tempV2.reverse()
+    values = tempV1 + tempV2 + [C_Add.Lable[64][0]]
     T1 = calculate(values, C_Add)
-
+    T1 = T1[::-1]
+    
     ## T2 0-31
     values = [C_LS0.Lable[t][int(H[0][t])] for t in range(len(H[0]))]
     T2_LS0 = calculate(values, C_LS0)
@@ -228,56 +246,65 @@ def operation(C_Con, C_Maj, C_LS0, C_LS1, C_Add):
     T2_Maj = calculate(values, C_Maj)
 
     tempV1 = [C_Add.Lable[t][int(T2_LS0[t])] for t in range(len(T2_LS0))]
+    tempV1.reverse()
     tempV2 = [C_Add.Lable[t][int(T2_Maj[t])] for t in range(len(T2_Maj))]
-    values = tempV1 + tempV2
+    tempV2.reverse()
+    values = tempV1 + tempV2 + [C_Add.Lable[64][0]]
     T2 = calculate(values, C_Add)
-
+    T2 = T2[::-1]
+    
     ## D + T1 0-31
     tempV1 = [C_Add.Lable[t][int(H[3][t])] for t in range(len(H[3]))]
+    tempV1.reverse()
     tempV2 = [C_Add.Lable[t][int(T1[t])] for t in range(len(T1))]
-    values = tempV1 + tempV2
+    tempV2.reverse()
+    values = tempV1 + tempV2 + [C_Add.Lable[64][0]]
     D_T1 = calculate(values, C_Add)
+    D_T1 = D_T1[::-1]
 
     ## T1 + T2 0-31
     tempV1 = [C_Add.Lable[t][int(T1[t])] for t in range(len(T1))]
+    tempV1.reverse()
     tempV2 = [C_Add.Lable[t][int(T2[t])] for t in range(len(T2))]
-    values = tempV1 + tempV2
+    tempV2.reverse()
+    values = tempV1 + tempV2 + [C_Add.Lable[64][0]]
     T1_T2 = calculate(values, C_Add)
-
+    T1_T2 = T1_T2[::-1]
+    
     H[7] = H[6]
     H[6] = H[5]
     H[5] = H[4]
-    H[4] = T1_LS1#D_T1
+    H[4] = D_T1
     H[3] = H[2]
     H[2] = H[1]
     H[1] = H[0]
-    H[0] = T1_LS1#T1_T2
-
+    H[0] = T1_T2
+    
 def main():
     
-    C_Con = circuit('conditional.json', 3)
-    C_Maj = circuit('Majority.json', 3)
-    C_LS0 = circuit('LSigma_0.json', 1)
-    C_LS1 = circuit('LSigma_1.json', 1)
-    C_Add = circuit('adder.json', 2)
+    C_Con = circuit('conditional.json', 3, 0)
+    C_Maj = circuit('Majority.json', 3, 0)
+    C_LS0 = circuit('LSigma_0.json', 1, 0)
+    C_LS1 = circuit('LSigma_1.json', 1, 0)
+    C_Add = circuit('adder.json', 2, 1)
     
     # 讀入 H.txt 和 W.txt 和 I.txt
     global H
-    infileH = open('H.txt')
+    infileH = open('H.txt', 'r')
     tempH = infileH.readline()
     H = tempH.split()
     H = ['{0:032b}'.format(int(h, 16)) for h in H]
     infileH.close()
     
     global W
-    infileW = open('W.txt')
+    infileW = open('W.txt', 'r')
     tempW = infileW.readline()
     W = tempW.split()
     W = ['{0:032b}'.format(int(w, 16)) for w in W]
     infileW.close()
     
     global It
-    infileI = open('I.txt')
+    infileI = open('I.txt', 'r')
     It = int(infileI.read())
     infileI.close()
     
@@ -288,5 +315,12 @@ def main():
     operation(C_Con, C_Maj, C_LS0, C_LS1, C_Add)
     H = ['{0:08x}'.format(int(h, 2)) for h in H]
 
+    # 寫檔回 H.txt
+    outfileH = open('H.txt', 'w')
+    textH = ''
+    for h in H:
+        textH += h + ' '
+    outfileH.write(textH)
+    outfileH.close()
 
 main()
