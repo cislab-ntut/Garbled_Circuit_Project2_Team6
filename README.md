@@ -1,4 +1,25 @@
 # Project6-2_Garbled_circuit
+
+## 20200107版
+
+#### 原版使用C++及python撰寫，因程式之間需藉由讀寫檔方式交換資訊，造成效率低落且執行結果不如預期。
+### 新版全部功能改由C++撰寫，除了修正原有錯誤外，執行時間降低為1秒。
+
+```
+新版程式：https://github.com/cislab-yzu/Project6-2_Garbled_circuit/tree/master/20200107_SHA256
+
+執行方式：編譯並執行20200107_SHA256中的7個檔案及6個電路檔(資料夾外的.txt檔)，輸入要加密的字串，即可得到哈希值。
+
+執行結果圖：
+輸入相同字串，哈希值相同
+輸入字串相近，哈希值差異顯著
+```
+![image](a.png)
+![image](b.png)
+
+
+## 舊版
+
 代碼實現以garbled circuit運算2-bit的g^x mod 3之模運算  
 使用者需輸入2-bit的x和g，作為garbled circuit的input  
 透過下圖電路設計，會得到2-bit計算結果的output  
